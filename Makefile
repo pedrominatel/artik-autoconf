@@ -3,8 +3,8 @@ INC_DIR=./inc
 BIN_DIR=./bin
 LIBS= -lm
 LDLIBS=
-#CC=../arm-2010q1/bin/arm-none-linux-gnueabi-gcc
-CC=gcc
+CC=../arm-2010q1/bin/arm-none-linux-gnueabi-gcc
+#CC=gcc
 CFLAGS=-O0 -Wunused -g3 -Wall -c -I$(INC_DIR)
 
 .PHONY: default all clean
