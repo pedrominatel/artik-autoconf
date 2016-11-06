@@ -71,8 +71,6 @@ uint8_t getNetworkInput(void){
 
 	fprintf(stdout, "\n\n");
 
-	restartSystem();
-
 	return 0;
 }
 
@@ -95,6 +93,7 @@ void getMenuOption(void){
 		break;
 		case 2:
 			getNetworkInput();
+			restartSystem();
 		break;
 		case 3:
 			runCommand(LIST_WIFI_ONFIGURED_NETWORKS);
