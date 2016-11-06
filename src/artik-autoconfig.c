@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include "commands.h"
 
 void runCommand(char *cmd);
 
-char ssid[20];
-char password[40];
+char ssid[32];
+char password[128];
 
 void printWelcome(void){
 
@@ -21,6 +22,21 @@ void printWelcome(void){
 	fprintf(stdout,"              A easy way to configure your Artik 5 board                \n");
 	fprintf(stdout," ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░\n");
 	fprintf(stdout,"   Developed by Pedro Minatel - github.com/pedrominatel/artik-autoconf  \n\n\n");
+
+}
+
+void restartSystem(void) {
+
+	char confirm;
+
+	fprintf(stdout, "You must reboot your system now!");
+	fprintf(stdout, "\nPlease, confirm (Y/N)!");
+	scanf("%s", &confirm);
+
+	if(confirm == 'N' || confirm == 'n')
+		return;
+
+	runCommand(REBOOT);
 
 }
 
@@ -40,10 +56,22 @@ void printOptions(void){
 
 uint8_t getNetworkInput(void){
 
-	fprintf(stdout, "Enter the network SSID: ");
-	scanf("%s", ssid);
-	fprintf(stdout, "Enter the network password: ");
-	scanf("%s", password);
+	char confirm_creds;
+
+	do {
+
+		fprintf(stdout, "Enter the network SSID: ");
+		scanf("%s", ssid);
+		fprintf(stdout, "Enter the network password: ");
+		scanf("%s", password);
+
+		fprintf(stdout, "\nPlease, confirm if the credentials are correct (Y/N)!");
+		scanf("%s", &confirm_creds);
+	} while(confirm_creds == 'N' || confirm_creds == 'n');
+
+	fprintf(stdout, "\n\n");
+
+	restartSystem();
 
 	return 0;
 }
@@ -62,25 +90,33 @@ void getMenuOption(void){
 			exit(0);
 		break;
 		case 1:
+			runCommand(SCAN_WIFI_NETWORKS);
+			runCommand(LIST_WIFI_NETWORKS);
 		break;
 		case 2:
 			getNetworkInput();
 		break;
 		case 3:
+			runCommand(LIST_WIFI_ONFIGURED_NETWORKS);
 		break;
 		case 4:
+			runCommand(PING_TEST);
 		break;
 		case 5:
-			runCommand("/usr/bin/ifconfig");
+			runCommand(NETWORK_STATUS);
 		break;
 		case 6:
+			runCommand(RESTART_WPA);
 		break;
 		case 7:
+			runCommand(INSTALL_ARDUINO);
+			restartSystem();
 		break;
 		default:
+			fprintf(stdout, "Invalid option!");
 		break;
 	}
-
+	fprintf(stdout, "\n\n");
 	getMenuOption();
 
 }
@@ -89,7 +125,7 @@ void runCommand(char *cmd) {
 
 	FILE *cmd_fp;
 	char cmd_buff[1035];
-	
+
 	cmd_fp = popen(cmd, "r");
 
 	if(cmd_fp==NULL){
@@ -117,10 +153,10 @@ void runCommand(char *cmd) {
 uint8_t checkRootUID(void){
 
 	uid_t uid = getuid(), euid = geteuid();
-	
+
 	if (uid==0 || euid==0) {
 		return 0; //IS ROOT
-	
+
 	} else {
 		fprintf(stderr, "Artik Conf needs ROOT privileges to run!\n");
 		fprintf(stderr, "Try sudo before run it!\n");
@@ -133,9 +169,13 @@ uint8_t checkRootUID(void){
  * * Main method
  * *
  * * @param...
- *     
+ *
  */
 int main(int argc, char **argv) {
+
+	if(checkRootUID())
+		exit(-1);
+
 	printWelcome();
 	getMenuOption();
 	exit(0);
